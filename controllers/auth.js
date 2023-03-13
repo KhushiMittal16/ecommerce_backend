@@ -60,55 +60,57 @@ exports.signout = (req, res) => {
 //   userProperty: "auth",
 // });
 // exports.requireSignin = expressjwt({
-  // GetVerificationKey = (req: express.Request, token: jwt.Jwt | undefined) => Promise<jwt.Secret>;
-  
-  // credentialsRequired: true,
-  // secret: process.env.JWT_SECRET,
-  // secret: `vjhug`,
-  // algorithms: ["HS256"],
-  // requestProperty: "user",
-  // getToken: function fromCookie (req) {
-  //   var token = req.cookies.access_token || req.body.access_token || req.query.access_token || req.headers['x-access-token'] ;
-  //   if (token) {
-  //     return token;
-  //   } 
-  //   return null;
-  // }
+// GetVerificationKey = (req: express.Request, token: jwt.Jwt | undefined) => Promise<jwt.Secret>;
+
+// credentialsRequired: true,
+// secret: process.env.JWT_SECRET,
+// secret: `vjhug`,
+// algorithms: ["HS256"],
+// requestProperty: "user",
+// getToken: function fromCookie (req) {
+//   var token = req.cookies.access_token || req.body.access_token || req.query.access_token || req.headers['x-access-token'] ;
+//   if (token) {
+//     return token;
+//   }
+//   return null;
+// }
 // })
 
-exports.requireSignin=(req,res,next)=>{
-  const token= jwt.sign({
-    email:"abcd@gmail.com"
-  },"xyz")
-  req.token=token
-  next()
-}
- 
-exports.isAuth = async(req, res, next) => {
+exports.requireSignin = (req, res, next) => {
+  const token = jwt.sign(
+    {
+      email: "abcd@gmail.com",
+    },
+    "xyz"
+  );
+  req.token = token;
+  next();
+};
+
+exports.isAuth = async (req, res, next) => {
   // let user = req.profile && req.auth && req.profile._id == req.auth._id;
   // if (!user) {
   //   return res.status(403).json({
   //     error: "Access denied",
   //   });
   // }
-  // next(); 
-  let user= await User.findById(req.params.userId)
-  if(!user){
+  // next();
+  let user = await User.findById(req.params.userId);
+  if (!user) {
     res.status(403).json({
-          error: "Access denied",
-        });
+      error: "Access denied",
+    });
   }
-  req.user=user
-  next()
+  req.user = user;
+  next();
 };
 
 exports.isAdmin = (req, res, next) => {
   // console.log("role",req.user.role)
-  if (req.user.role === 0) { 
+  if (req.user.role === 0) {
     return res.status(403).json({
       error: "Admin resource! Access denied!!!",
     });
   }
   next();
 };
- 

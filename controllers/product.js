@@ -153,7 +153,7 @@ exports.list = (req, res) => {
   let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
   let limit = req.query.limit ? parseInt(req.query.limit) : 6;
   Product.find()
-    .select("-photo")
+    // .select("-photo")
     .populate("category")
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -222,7 +222,7 @@ exports.listBySearch = (req, res) => {
   }
 
   Product.find(findArgs)
-    .select("-photo")
+    // .select("-photo")
     .populate("category")
     .sort([[sortBy, order]])
     // .skip(skip)

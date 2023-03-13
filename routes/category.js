@@ -9,7 +9,7 @@ router.get("/categories", read);
 router.post("/category/create/:userId",requireSignin,isAuth,isAdmin, create);
 router.put("/category/update/:categoryId/:userId", requireSignin, isAuth, isAdmin, update);
 router.delete("/category/remove/:categoryId/:userId", requireSignin, isAuth, isAdmin, remove);
-router.get("/categories", list);
+router.get("/categories", list); 
 router.param("userId",userById)
 router.param("categoryId",categoryById)
 module.exports = router;

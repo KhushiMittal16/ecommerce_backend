@@ -9,7 +9,7 @@ exports.userSignupValidator = (req, res, next) => {
     .check("password", "password must be 8 characters long")
     .isLength({
       min: 8,
-      max: 15,
+      max: 15, 
     })
     .matches(/\d/)
     .withMessage("Password must contain a number");

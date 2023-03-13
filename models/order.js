@@ -29,7 +29,7 @@ const OrderSchema = new mongoose.Schema(
         "Shipped",
         "Delivered",
         "Cancelled",
-      ], // enum means string objects
+      ], // enum means objects should be among the given options
     },
     updated: Date,
     user: { type: ObjectId, ref: "User" },

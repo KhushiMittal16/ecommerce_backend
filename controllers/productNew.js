@@ -6,9 +6,10 @@ const ProductNew = require("../models/productNew");
 const { errorHandler } = require("../helpers/dbErrorHandler");
 const fs = require("fs");
 const { result } = require("lodash");
+const { cloudinary } = require("../utils/cloudinary");
 
 exports.productById = (req, res, next, id) => {
-    ProductNew.findById(id)
+  ProductNew.findById(id)
     .populate("category")
     .exec((err, product) => {
       if (err || !product) {
@@ -22,70 +23,82 @@ exports.productById = (req, res, next, id) => {
 };
 
 exports.read = (req, res) => {
-  req.product.photo = undefined;
+  //req.product.photo = undefined;
+  console.log("product: ", req.product);
+  console.log(req.product);
   return res.json(req.product);
 };
 
-exports.create =  (req, res) => {
-  let form = new formidable.IncomingForm();
-  form.keepExtensions = true;
-  // console.log(form);
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(400).json({
-        error: "Image could not be uploaded",
-      });
-    }
-    const { name, description, price, category, quantity, shipping } = fields;
-    // console.log(files);
-    if (
-      !name ||
-      !description ||
-      !price ||
-      !category ||
-      !quantity ||
-      !shipping
-    ) {
-      return res.status(400).json({
-        error: "Please Enter all the required fields!!!",
-      });
-    }
-    if (files.photo) {
-      // console.log("FILES PHOTO: ", files.photo);
-      if (files.photo.size > 5000000) {
-        return res.status(400).json({
-          error: "Image should be less than 5mb in size",
-        });
-      }
-      // product.photo.data = // change path to filepath
-      // product.photo.contentType = files.photo.mimetype; // change type to mimetype
+exports.create = async (req, res) => {
+  try {
+    // const { name, description,category, photo, price, quantity } = req.body;
+    console.log("body: ", req.body);
+    const { name, description, category, photo, price, quantity } = req.body;
+    console.log(name, description, category, photo, price, quantity);
+    let product = new ProductNew({
+      name,
+      description,
+      price,
+      category,
+      quantity,
+      photo,
+    });
 
-      let product = new ProductNew({
-        name,
-        description,
-        price,
-        category,
-        quantity,
-        shipping,
-        photo: {
-          data: fs.readFileSync(files.photo.filepath),
-          contentType: files.photo.type,
-        },
-      })
-      product.save();
-      // console.log("product photo",product.photo);
-      // return
-
-      // product.save();
-      res.json(product);
-      console.log("product photo data",product.photo.data);
-
-    }
-    // console.log(product)
-    // console.log(files)
-    // res.json(product)
-  });
+    const savedProduct = await product.save();
+    res.json(savedProduct);
+  } catch (error) {
+    console.log(error);
+  }
 };
+
+// exports.create = async (req, res) => {
+//   try {
+//     const {
+//       urls,
+//       fname,
+//       name,
+//       description,
+//       price,
+//       category,
+//       quantity,
+//       shipping,
+//     } = req.body;
+//     const uploadedResponse = await cloudinary.uploader.upload(urls, {
+//       upload_preset: "mqmmersr",
+//     });
+//     console.log(uploadedResponse);
+
+//     if (
+//       !urls ||
+//       !name ||
+//       description ||
+//       price ||
+//       category ||
+//       quantity ||
+//       shipping
+//     ) {
+//       return res.status(400).json({
+//         err: "Please enter all the fields",
+//       });
+//     }
+//     const product = await new product({
+//       image: {
+//         publicId: fname,
+//         imageUrl: uploadedResponse,
+//       },
+//       name,
+//       description,
+//       price,
+//       category,
+//       quantity,
+//       shipping,
+//     });
+//     product.save();
+//     res.json(product);
+//   } catch (err) {
+//     console.log(err);
+//   }
+// };
 
 exports.update = (req, res) => {
   let form = new formidable.IncomingForm();
@@ -152,31 +165,36 @@ by arrival= /products?sortBy=createdAt&ordeer=desc&limit=4
 if no params are sent, then all products are returned
 */
 
-exports.list = (req, res) => {
+exports.list = async (req, res) => {
   let order = req.query.order ? req.query.order : "asc";
   let sortBy = req.query.sortBy ? req.query.sortBy : "_id";
   let limit = req.query.limit ? parseInt(req.query.limit) : 6;
-  ProductNew.find()
-    .select("-photo")
-    .populate("category")
-    .sort({ createdAt: -1 })
-    .limit(limit)
-    // .skip(0)
-    .exec((err, products) => {
-      if (err) {
-        return res.status(400).json({
-          error: "Product not found!",
-        });
-      }
-      res.send(products);
-    });
+  const products = await ProductNew.find().sort({ createdAt: -1 }).limit(limit);
+  // ProductNew.find()
+  // .populate("category")
+  // .sort({ createdAt: -1 })
+  // .limit(limit)
+  // //.select("-photo")
+  //   // .skip(0)
+  //   .exec((err, products) => {
+  //     if (err) {
+  //       return res.status(400).json({
+  //         error: "Product not found!",
+  //       });
+  //     }
+  // console.log("product data: ", products);
+  res.send(products);
+  // });
 };
 
 // This func will return all the related product i.e. the products having same category to the product searched
 
 exports.listRelated = (req, res) => {
   let limit = req.query.limit ? parseInt(req.query.limit) : 6;
-  ProductNew.find({ _id: { $ne: req.product }, category: req.product.category })
+  const product = ProductNew.find({
+    _id: { $ne: req.product },
+    category: req.product.category,
+  })
     .limit(limit)
     .populate("category", "_id name")
     .exec((err, products) => {
@@ -185,12 +203,13 @@ exports.listRelated = (req, res) => {
           error: "Product not found!",
         });
       }
+      // console.log("product data: ", product);
       res.send(products);
     });
 };
 
 exports.listCategories = (req, res) => {
-    ProductNew.distinct("category", {}, (err, categories) => {
+  ProductNew.distinct("category", {}, (err, categories) => {
     if (err) {
       return res.status(400).json({
         error: "Product not found!",
@@ -226,7 +245,6 @@ exports.listBySearch = (req, res) => {
   }
 
   ProductNew.find(findArgs)
-    .select("-photo")
     .populate("category")
     .sort([[sortBy, order]])
     // .skip(skip)
@@ -244,13 +262,13 @@ exports.listBySearch = (req, res) => {
     });
 };
 
-exports.photo = (req, res, next) => {
-  if (req.product.photo.data) {
-    res.set("Content-Type", req.product.photo.contentType);
-    return res.send(req.product.photo.data);
-  }
-  next();
-};
+// exports.photo = (req, res, next) => {
+//   if (req.product.photo.data) {
+//     res.set("Content-Type", req.product.photo.contentType);
+//     return res.send(req.product.photo.data);
+//   }
+//   next();
+// };
 
 exports.listSearch = async (req, res) => {
   //create a query object to hold search value and category value

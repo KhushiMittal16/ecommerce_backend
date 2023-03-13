@@ -4,7 +4,7 @@ const router = express.Router();
 //   create,
 //   productById,
 //   read,
-//   remove,
+//   remove, 
 //   update,
 //   list,
 //   listRelated,
@@ -24,12 +24,14 @@ const {
   listRelated,
   listCategories,
   listBySearch,
-  photo,
+  // photo,
   listByCategory,
   listSearch,
 } = require("../controllers/productNew");
 const { userById } = require("../controllers/user");
 const { requireSignin, isAuth, isAdmin } = require("../controllers/auth");
+const { uploadImage } = require("../controllers/Image");
+
 router.get("/product/:productId", read);
 router.get("/products/related/:productId", listRelated);
 router.post("/product/create/:userId", requireSignin, isAuth,isAdmin, create);
@@ -47,13 +49,14 @@ router.put(
   isAdmin,
   update
 );
+router.post("/uploadimage",uploadImage)
 router.get("/products", list);
 router.get("/products/related/:productId", listRelated);
 router.get("/products/categories", listCategories);
 router.post("/products/by/search", listBySearch);
 router.get("/products/:search", listSearch);
 router.get("/products/:category/:search", listByCategory);
-router.get("/products/photo/:productId", photo);
+// router.get("/products/photo/:productId", photo);
 
 router.param("userId", userById);
 router.param("productId", productById);
